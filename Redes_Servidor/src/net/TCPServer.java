@@ -3,11 +3,10 @@ package net;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import main.Core;
 
-public class TCPServer extends Thread {
+public class TCPServer implements Runnable {
 	
 	private int porta;
 	private ServerSocket welcome;
@@ -35,11 +34,8 @@ public class TCPServer extends Thread {
 	public void startServer() throws IOException{
 		while(true){
 			System.out.println("derp");
-			Socket s = welcome.accept(); //bloqueante... o esuqema de interromper com o ThreadInterrupted só funciona depois disso rodar
-			(new Worker(s,core)).start();
-			if( Thread.interrupted() ) {
-				break;
-			}
+			Socket s = welcome.accept(); //bloqueante...
+			Core.pool.execute(new Worker(s,core));
 		}
 	}
 	

@@ -1,8 +1,26 @@
 package game;
 
 public class Player {
-	String name;
+	private String name;
+	private long lastConnection;
 
+	public Player(String name, long con){
+		this.name=name;
+		this.lastConnection=con;
+	}
+	
+	public long getLastCon(){
+		return lastConnection;
+	}
+	
+	public void setLastCon(long l){
+		this.lastConnection=l;
+	}
+	
+	public String getName(){
+		return name;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
