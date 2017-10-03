@@ -19,6 +19,10 @@ public class Worker implements Runnable {
 		core=c;
 	}
 	
+	public void closeSocket() throws IOException{
+		sock.close();
+	}
+	
 	@Override
 	public void run(){
 		try {

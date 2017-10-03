@@ -1,5 +1,7 @@
 package main;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -10,6 +12,7 @@ import game.Game;
 import game.Player;
 import net.TCPServer;
 import net.TimeoutThread;
+import net.Worker;
 
 public class Core {
 	public static ExecutorService pool;
@@ -20,14 +23,39 @@ public class Core {
 		Core m = new Core();
 		
 		pool = Executors.newCachedThreadPool();
-		pool.execute(new TCPServer(Core.PORTA,m));
-		pool.execute(new TimeoutThread(m));
 		
-		Scanner s = new Scanner(System.in);
-		System.out.println("Digite qualquer coisa para encerrar o servidor");
-		s.nextLine();
-		s.close();
-		pool.shutdown();
+		ServerSocket welcome=null;
+		try {
+			welcome = new ServerSocket(PORTA);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		if(welcome!=null){
+			pool.execute(new TCPServer(m,welcome));
+			pool.execute(new TimeoutThread(m));
+			
+			Scanner s = new Scanner(System.in);
+			System.out.println("Digite qualquer coisa para encerrar o servidor");
+			s.nextLine();
+			s.close();
+			
+			try {
+				welcome.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			} 
+			
+			for(Runnable worker : pool.shutdownNow()){
+				if(worker.getClass().equals(Worker.class)){
+					try {
+						((Worker)worker).closeSocket(); //mata os sockets ainda abertos
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 	
 	private long id;

@@ -22,7 +22,10 @@ public class TimeoutThread implements Runnable {
 	@Override
 	public void run() {
 		while(true){
-		
+			if (Thread.currentThread().isInterrupted()) {
+                System.out.println("interrupted");
+                break;
+            }
 			timestamp = System.currentTimeMillis();
 			removerP.clear();
 			
@@ -42,9 +45,10 @@ public class TimeoutThread implements Runnable {
 			try {
 				Thread.sleep(20000);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				break; //quando sleep solta a excecao de interrupcao, o status interrompido é desfeito, por isso o break aqui  
 			} //verifica os timers a cada 20 segundos
 		}
+		System.out.println("timeout terminou");
 	}
 
 }
