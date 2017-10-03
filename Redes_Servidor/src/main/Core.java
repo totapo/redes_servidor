@@ -17,7 +17,7 @@ import net.Worker;
 public class Core {
 	public static ExecutorService pool;
 	private static final int PORTA=12345;
-	public static final long TimeoutWindow=120000; //2 minutos
+	public static final long TimeoutWindow=60000; //1 min
 	
 	public static void main(String[] args) {
 		Core m = new Core();

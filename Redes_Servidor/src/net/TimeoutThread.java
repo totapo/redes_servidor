@@ -17,8 +17,6 @@ public class TimeoutThread implements Runnable {
 		removerP = new ArrayList<Player>();
 	}
 	
-	
-	
 	@Override
 	public void run() {
 		while(true){
@@ -40,6 +38,7 @@ public class TimeoutThread implements Runnable {
 			for(Player a:removerP){
 				c.getLastConnection().remove(a.getName());
 				c.getPlayers().remove(a);
+				System.out.println("timeout "+a.getName());
 			}
 			
 			try {

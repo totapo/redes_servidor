@@ -56,8 +56,14 @@ public class Worker implements Runnable {
 					while((a=core.getPlayers().get(p).poll())!=null){
 						response+=a+"|";
 					}
+					response+=";";
+					for(Player player : core.getLastConnection().values()){
+						if(!player.getName().equals(p.getName()))
+							response+=player.getName()+"|";
+					}
+					
 					core.getLastConnection().get(p.getName()).setLastCon(p.getLastCon()); //reescreve o timeout
-					out.writeBytes("2;"+response+"\n"); //resposta do keepAlive (envia todas as mensagens enfileiradas pro jogador
+					out.writeBytes("2;"+response+"\n"); //resposta do keepAlive (envia todas as mensagens enfileiradas pro jogador, e a lista de jogadores online)
 					break;
 				case 3: //challenge-formato: "3;[playerId];[targetPlayerId]"
 					break;
