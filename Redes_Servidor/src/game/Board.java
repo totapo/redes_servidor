@@ -3,7 +3,7 @@ package game;
 public class Board {
 	
 	private int size;
-	private int[][] board;
+	private int[][] board; //-1 = brancas; 0 = vazio; 1=pretas
 	
 
 	public Board(int boardSize) {

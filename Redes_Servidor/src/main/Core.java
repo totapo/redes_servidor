@@ -18,6 +18,7 @@ public class Core {
 	public static ExecutorService pool;
 	private static final int PORTA=12345;
 	public static final long TimeoutWindow=60000; //1 min
+	public static final int DefaultBoardSize=8;
 	
 	public static void main(String[] args) {
 		Core m = new Core();

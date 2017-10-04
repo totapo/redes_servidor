@@ -1,17 +1,24 @@
 package game;
 
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class Game {
 	private Player white, black;
 	private Board board;
-	private boolean turn; //true brancas; false pretas
+	private boolean turn; //true pretas; false brancas
 	private int pieceCount;
 	
 	public Game(Player a, Player b, int boardSize){
-		white = a;
-		black = b;
+		Random r= new Random();
+		if(r.nextInt()%2==0) {
+			white = a;
+			black = b;
+		} else {
+			white = b;
+			black = a;
+		}
 		turn = true;
 		board = new Board(boardSize);
 		setupBoard();
@@ -48,10 +55,10 @@ public class Game {
 					changePieces(l, c, value, -1, 0); // /\
 					changePieces(l, c, value, 1, -0); // \/
 					
-					changePieces(l, c, value, 0, -1); // <- /\
-					changePieces(l, c, value, 0, -1); // -> /\
-					changePieces(l, c, value, 0, -1); // <- \/
-					changePieces(l, c, value, 0, -1); // -> \/
+					changePieces(l, c, value, -1, -1); // <- /\
+					changePieces(l, c, value, +1, -1); // -> /\
+					changePieces(l, c, value, -1, +1); // <- \/
+					changePieces(l, c, value, +1, +1); // -> \/
 					
 					pieceCount++;
 				}
@@ -187,5 +194,15 @@ public class Game {
 		}
 			
 	}
+
+	public Player getWhite() {
+		return white;
+	}
+
+	public Player getBlack() {
+		return black;
+	}
+	
+	
 	
 }
