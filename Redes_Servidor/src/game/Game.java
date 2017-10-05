@@ -19,9 +19,15 @@ public class Game {
 			white = b;
 			black = a;
 		}
+		white.setInGame(true);
+		black.setInGame(true);
 		turn = true;
 		board = new Board(boardSize);
 		setupBoard();
+	}
+	
+	public boolean isBlackTurn(){
+		return turn;
 	}
 	
 	private void setupBoard(){
@@ -76,7 +82,7 @@ public class Game {
 		return false;
 	}
 	
-	private boolean hasMoves(int value) {
+	private boolean hasMoves(int value) {//value=1 pretas, value=-1 brancas
 		int size = board.getSize();
 		for(int l=0; l<size; l++){
 			for(int c=0; c<size; c++){
@@ -155,20 +161,22 @@ public class Game {
 	
 	public Set<int[]> getPossibleMoves(int value){
 		Set<int[]> response = new TreeSet<int[]>();
-		int size = board.getSize();
-		for(int l=0; l<size; l++){
-			for(int c=0; c<size; c++){
-				if(board.getPiece(l,c)==value){
-					boolean checkFirstPiece = true;
-					findMove(l, c, value, 0, -1, response,checkFirstPiece); // <-
-					findMove(l, c, value, 0, +1, response,checkFirstPiece); // ->
-					findMove(l, c, value, -1, 0, response,checkFirstPiece); // /\
-					findMove(l, c, value, 1, -0, response,checkFirstPiece); // \/
-					
-					findMove(l, c, value, 0, -1, response,checkFirstPiece); // <- /\
-					findMove(l, c, value, 0, -1, response,checkFirstPiece); // -> /\
-					findMove(l, c, value, 0, -1, response,checkFirstPiece); // <- \/
-					findMove(l, c, value, 0, -1, response,checkFirstPiece); // -> \/
+		if((value==1 && this.turn) || (value==-1 && !this.turn)){
+			int size = board.getSize();
+			for(int l=0; l<size; l++){
+				for(int c=0; c<size; c++){
+					if(board.getPiece(l,c)==value){
+						boolean checkFirstPiece = true;
+						findMove(l, c, value, 0, -1, response,checkFirstPiece); // <-
+						findMove(l, c, value, 0, +1, response,checkFirstPiece); // ->
+						findMove(l, c, value, -1, 0, response,checkFirstPiece); // /\
+						findMove(l, c, value, 1, -0, response,checkFirstPiece); // \/
+						
+						findMove(l, c, value, 0, -1, response,checkFirstPiece); // <- /\
+						findMove(l, c, value, 0, -1, response,checkFirstPiece); // -> /\
+						findMove(l, c, value, 0, -1, response,checkFirstPiece); // <- \/
+						findMove(l, c, value, 0, -1, response,checkFirstPiece); // -> \/
+					}
 				}
 			}
 		}
@@ -203,6 +211,8 @@ public class Game {
 		return black;
 	}
 	
-	
+	public Board getBoard(){
+		return board;
+	}
 	
 }

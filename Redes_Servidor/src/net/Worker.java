@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import game.Game;
@@ -47,10 +48,11 @@ public class Worker implements Runnable {
 				case 3: //challenge-formato: "3;[playerId];[targetPlayerId]"
 					challenge(request,params,out);
 					break;
-				case 4: //challResponse-formato: "4;[playerId];[challengerId];[matchId];[boolAccept]"
+				case 4: //challResponse-formato: "4;[matchId];[boolAccept]" bool=0 ok; bool=1 false
 					challResp(params,out);
 					break;
 				case 5: //getBoard-formato: "5;[playerId];[matchId]"
+					getGameInfo(params,out);
 					break;
 				case 6: //makeMove-formato: "6;[playerId];[matchId];[xCoordinate];[yCoordinate]"
 					break;
@@ -75,8 +77,49 @@ public class Worker implements Runnable {
 		}
 	}
 
-	private void challResp(String[] params, DataOutputStream out) {
+	private void getGameInfo(String[] params, DataOutputStream out) throws IOException {
+		String player = params[1];
+		long gId = Long.parseLong(params[2]);
+		int value=0;
+		Game g = core.getGames().get(gId);
+		//"5;[blackId];[whiteId];[board];[possibleMoves];[blackCount];[whiteCount];[turn]" turn=0 black; turn=1 white; turn=-1 encerrado
+		if(player.equals(g.getBlack())){
+			value=1;
+		} else
+			value=-1;
 		
+		
+		Set<int[]>moves=g.getPossibleMoves(value);
+		String possMoves="";
+		if(moves.size()>0){
+			for(int[] a:moves){
+				possMoves+=a[0]+","+a[1]+"|";
+			}
+			possMoves.subSequence(0, possMoves.length()-1);
+		}
+		
+		g.getBoard();
+		
+		String resp="5;"+g.getBlack().getName()+";"+g.getWhite().getName()+";"+g.getBoard().toString()+";"+possMoves+";"+g.getBoard().getBlackCount()+";"+g.getBoard().getWhiteCount()+";"+((g.isBlackTurn())?"0":"1");
+		out.writeBytes(resp+"\n");
+	}
+
+	private void challResp(String[] params, DataOutputStream out) throws IOException {
+		int r = Integer.parseInt(params[2]);
+		long id = Long.parseLong(params[1]);
+		Game g = core.getGames().get(id);
+		if(r==0){
+			//começa jogo
+			core.getPlayers().get(g.getBlack()).add("5,0");
+			core.getPlayers().get(g.getWhite()).add("5,0");
+			out.writeBytes("4;0\n");
+		} else {
+			g.getBlack().setInGame(false);
+			g.getWhite().setInGame(false);
+			core.getPlayers().get(g.getBlack()).add("5,1");
+			core.getPlayers().get(g.getWhite()).add("5,1");
+			out.writeBytes("4;1\n");
+		}
 	}
 
 	private void challenge(String request, String[] params, DataOutputStream out) throws IOException {
@@ -99,14 +142,23 @@ public class Worker implements Runnable {
 		Player p = new Player(params[1],System.currentTimeMillis());
 		String response="";
 		String a;
+		
 		while((a=core.getPlayers().get(p).poll())!=null){
 			response+=a+"|";
 		}
+		if(response.length()>0)
+			response=response.substring(0,response.length()-1);
 		response+=";";
+		
+		boolean entrou=false;
 		for(Player player : core.getLastConnection().values()){
-			if(!player.getName().equals(p.getName()))
+			if(!player.getName().equals(p.getName())){
 				response+=player.getName()+"|";
+				entrou=true;
+			}
 		}
+		if(entrou)
+			response=response.substring(0,response.length()-1);
 		
 		core.getLastConnection().get(p.getName()).setLastCon(p.getLastCon()); //reescreve o timeout
 		out.writeBytes("2;"+response+"\n"); //resposta do keepAlive (envia todas as mensagens enfileiradas pro jogador, e a lista de jogadores online)

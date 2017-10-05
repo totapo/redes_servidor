@@ -3,10 +3,12 @@ package game;
 public class Player {
 	private String name;
 	private long lastConnection;
+	private boolean inGame;
 
 	public Player(String name, long con){
 		this.name=name;
 		this.lastConnection=con;
+		inGame=false;
 	}
 	
 	public long getLastCon(){
@@ -19,6 +21,14 @@ public class Player {
 	
 	public String getName(){
 		return name;
+	}
+	
+	public void setInGame(boolean inGame){
+		this.inGame=inGame;
+	}
+	
+	public boolean isInGame(){
+		return inGame;
 	}
 	
 	@Override
