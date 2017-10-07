@@ -10,7 +10,7 @@ public class Game {
 	private boolean turn; //true pretas; false brancas
 	private int pieceCount;
 	private long id;
-	
+	private String winner;
 	public Game(Player a, Player b, int boardSize, long id){
 		Random r= new Random();
 		if(r.nextInt()%2==0) {
@@ -25,6 +25,7 @@ public class Game {
 		black.setInGame(true,this.id);
 		turn = true;
 		board = new Board(boardSize);
+		winner=null;
 		setupBoard();
 	}
 	
@@ -41,16 +42,23 @@ public class Game {
 		pieceCount=4;
 	}
 	
-	public Player getWinner(){
-		Player r=null;
+	public String getWinner(){
+		if(winner!=null) return winner;
 		int resp=0;
 		int size = board.getSize();
 		for(int l=0; l<size; l++)
 			for(int c=0; c<size; c++)
 				resp+=board.getPiece(l,c);
-		if(resp>0) r=this.white;
-		if(resp<0) r=this.black;
-		return r;
+		if(winner==null){
+			if(resp>0){
+				winner = this.black.getName();
+			} else if(resp==0){
+				winner=" ";
+			} else {
+				winner = this.white.getName();
+			}
+		}
+		return winner;
 	}
 	
 	public void addPiece(int l, int c, int value){

@@ -81,8 +81,10 @@ public class Worker implements Runnable {
 
 	private void getWinner(String[] params, DataOutputStream out) throws IOException {
 		long id = Long.parseLong(params[2]);
-		String auxIdPlayer = params[1];
+		String winner,auxIdPlayer = params[1];
 		Game g = core.getGames().get(id);
+		
+		winner = g.getWinner();
 		
 		if(g.getBlack().getName().equals(auxIdPlayer)){
 			g.getBlack().setInGame(false, -1);
@@ -92,12 +94,9 @@ public class Worker implements Runnable {
 			g.setWhite(null);
 		}
 		
-		Player winner = g.getWinner();
-		auxIdPlayer = (winner!=null)?winner.getName():" ";
-		
 		if(g.getBlack()==null && g.getWhite()==null)
 			endGame(id,null);
-		out.writeBytes("8;"+auxIdPlayer+"\n");
+		out.writeBytes("8;"+winner+"\n");
 	}
 
 	private void makeMove(String[] params, DataOutputStream out) throws IOException {
@@ -163,11 +162,12 @@ public class Worker implements Runnable {
 		int value=0;
 		Game g = core.getGames().get(gId);
 		//"5;[blackId];[whiteId];[board];[possibleMoves];[blackCount];[whiteCount];[turn]" turn=0 black; turn=1 white; turn=-1 encerrado
-		if(player.equals(g.getBlack().getName())){
-			value=1;
-		} else
-			value=-1;
-		
+		if(g.getBlack()!=null){
+			if(player.equals(g.getBlack().getName())){
+				value=1;
+			} else
+				value=-1;
+		}
 		
 		List<Integer[]>moves=g.getPossibleMoves(value);
 		String possMoves=" ";
@@ -228,7 +228,7 @@ public class Worker implements Runnable {
 		Player p1 = core.getLastConnection().get(params[1]);
 		Player p2 = core.getLastConnection().get(params[2]);
 		String response;
-		if(p1!=null && p2!=null) {
+		if(p1!=null && p2!=null && !p1.isInGame() && !p2.isInGame()){
 			long id = core.getNewGameId();
 			Game g = new Game(p1,p2,Core.DefaultBoardSize,id);
 			core.getGames().put(id,g);
@@ -287,11 +287,11 @@ public class Worker implements Runnable {
 		if(g!=null){
 			a = g.getBlack();
 			b = g.getWhite();
-			if((a=core.getLastConnection().get(a.getName()))!=null){
+			if(a!=null && (a=core.getLastConnection().get(a.getName()))!=null){
 				core.getPlayers().get(a).add("7,"+msg);
 				a.setInGame(false, -1);
 			}
-			if((b=core.getLastConnection().get(b.getName()))!=null){
+			if(b!=null && (b=core.getLastConnection().get(b.getName()))!=null){
 				core.getPlayers().get(b).add("7,"+msg);
 				b.setInGame(false, -1);
 			}
