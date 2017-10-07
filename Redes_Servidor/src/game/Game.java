@@ -41,13 +41,16 @@ public class Game {
 		pieceCount=4;
 	}
 	
-	public int getWinner(){
+	public Player getWinner(){
+		Player r=null;
 		int resp=0;
 		int size = board.getSize();
 		for(int l=0; l<size; l++)
 			for(int c=0; c<size; c++)
 				resp+=board.getPiece(l,c);
-		return resp;
+		if(resp>0) r=this.white;
+		if(resp<0) r=this.black;
+		return r;
 	}
 	
 	public void addPiece(int l, int c, int value){
@@ -96,10 +99,10 @@ public class Game {
 					r = r || hasMove(l, c, value, -1, 0, checkFirstPiece); // /\
 					r = r || hasMove(l, c, value, 1, -0, checkFirstPiece); // \/
 					
-					r = r || hasMove(l, c, value, 0, -1, checkFirstPiece); // <- /\
-					r = r || hasMove(l, c, value, 0, -1, checkFirstPiece); // -> /\
-					r = r || hasMove(l, c, value, 0, -1, checkFirstPiece); // <- \/
-					r = r || hasMove(l, c, value, 0, -1, checkFirstPiece); // -> \/
+					r = r || hasMove(l, c, value, -1, -1, checkFirstPiece); // <- /\
+					r = r || hasMove(l, c, value, +1, -1, checkFirstPiece); // -> /\
+					r = r || hasMove(l, c, value, -1, +1, checkFirstPiece); // <- \/
+					r = r || hasMove(l, c, value, +1, +1, checkFirstPiece); // -> \/
 					
 					if(r)
 						return r;
@@ -174,10 +177,11 @@ public class Game {
 						findMove(l, c, value, -1, 0, response,checkFirstPiece); // /\
 						findMove(l, c, value, 1, -0, response,checkFirstPiece); // \/
 						
-						findMove(l, c, value, 0, -1, response,checkFirstPiece); // <- /\
-						findMove(l, c, value, 0, -1, response,checkFirstPiece); // -> /\
-						findMove(l, c, value, 0, -1, response,checkFirstPiece); // <- \/
-						findMove(l, c, value, 0, -1, response,checkFirstPiece); // -> \/
+						findMove(l, c, value, -1, -1, response,checkFirstPiece); // <- /\
+						findMove(l, c, value, +1, -1, response,checkFirstPiece); // -> /\
+						findMove(l, c, value, -1, +1, response,checkFirstPiece); // <- \/
+						findMove(l, c, value, +1, +1, response,checkFirstPiece); // -> \/
+						
 					}
 				}
 			}
@@ -216,6 +220,14 @@ public class Game {
 	public Board getBoard(){
 		return board;
 	}
+	
+	public void setWhite(Player p){
+		this.white=p;
+	}
+	
+	public void setBlack(Player p){
+		this.black=p;
+	}
 
 	@Override
 	public int hashCode() {
@@ -242,7 +254,5 @@ public class Game {
 	public long getId() {
 		return id;
 	}
-	
-	
 	
 }
