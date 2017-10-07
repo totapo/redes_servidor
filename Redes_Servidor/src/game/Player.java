@@ -2,13 +2,14 @@ package game;
 
 public class Player {
 	private String name;
-	private long lastConnection;
+	private long lastConnection,gameId;
 	private boolean inGame;
 
 	public Player(String name, long con){
 		this.name=name;
 		this.lastConnection=con;
 		inGame=false;
+		gameId=-1;
 	}
 	
 	public long getLastCon(){
@@ -23,8 +24,13 @@ public class Player {
 		return name;
 	}
 	
-	public void setInGame(boolean inGame){
+	public void setInGame(boolean inGame, long gameId){
 		this.inGame=inGame;
+		this.gameId=gameId;
+	}
+	
+	public long getGameId(){
+		return gameId;
 	}
 	
 	public boolean isInGame(){

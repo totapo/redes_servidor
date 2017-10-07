@@ -2,7 +2,9 @@ package net;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import game.Game;
 import game.Player;
 import main.Core;
 
@@ -36,6 +38,19 @@ public class TimeoutThread implements Runnable {
 			
 			
 			for(Player a:removerP){
+				
+				if(a.isInGame()){
+					Game g = c.getGames().get(a.getGameId());
+					Player other = a.equals(g.getBlack())?g.getWhite():g.getBlack();
+					ConcurrentLinkedQueue<String> aux = c.getPlayers().get(other);
+					if(aux!=null){
+						System.out.println("Adicionei a mensagem");
+						aux.add("7,O outro jogador está offline.");
+						other.setInGame(false, -1);
+					}
+					c.getGames().remove(a.getGameId());
+				}
+				
 				c.getLastConnection().remove(a.getName());
 				c.getPlayers().remove(a);
 				System.out.println("timeout "+a.getName());

@@ -1,16 +1,17 @@
 package game;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class Game {
 	private Player white, black;
 	private Board board;
 	private boolean turn; //true pretas; false brancas
 	private int pieceCount;
+	private long id;
 	
-	public Game(Player a, Player b, int boardSize){
+	public Game(Player a, Player b, int boardSize, long id){
 		Random r= new Random();
 		if(r.nextInt()%2==0) {
 			white = a;
@@ -19,8 +20,9 @@ public class Game {
 			white = b;
 			black = a;
 		}
-		white.setInGame(true);
-		black.setInGame(true);
+		this.id=id;
+		white.setInGame(true,this.id);
+		black.setInGame(true,this.id);
 		turn = true;
 		board = new Board(boardSize);
 		setupBoard();
@@ -159,8 +161,8 @@ public class Game {
 			
 	}
 	
-	public Set<int[]> getPossibleMoves(int value){
-		Set<int[]> response = new TreeSet<int[]>();
+	public List<Integer[]> getPossibleMoves(int value){
+		List<Integer[]> response = new ArrayList<Integer[]>();
 		if((value==1 && this.turn) || (value==-1 && !this.turn)){
 			int size = board.getSize();
 			for(int l=0; l<size; l++){
@@ -183,7 +185,7 @@ public class Game {
 		return response;
 	}
 
-	private void findMove(int l, int c, int value, int linJump, int colJump, Set<int[]> response, boolean checkFirstPiece) {
+	private void findMove(int l, int c, int value, int linJump, int colJump, List<Integer[]> response, boolean checkFirstPiece) {
 		l+=linJump;
 		c+=colJump;
 		if(!(l>=0 && l<board.getSize() && c>=0 && c<board.getSize())) //out of bounds
@@ -193,7 +195,7 @@ public class Game {
 		if(piece==0 && checkFirstPiece)
 			return;
 		else if(piece==0){
-			response.add(new int[]{l,c});
+			response.add(new Integer[]{l,c});
 			return;
 		} else if(piece==value)
 			return;
@@ -214,5 +216,33 @@ public class Game {
 	public Board getBoard(){
 		return board;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (int) (id ^ (id >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Game other = (Game) obj;
+		if (id != other.id)
+			return false;
+		return true;
+	}
+
+	public long getId() {
+		return id;
+	}
+	
+	
 	
 }

@@ -5,7 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import game.Game;
@@ -27,14 +27,14 @@ public class Worker implements Runnable {
 	
 	@Override
 	public void run(){
+		BufferedReader in=null;
+		DataOutputStream out=null;
 		try {
-			BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-			DataOutputStream out = new DataOutputStream(sock.getOutputStream());
+			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+			out = new DataOutputStream(sock.getOutputStream());
 			
 			String request = in.readLine();
-			
 			System.out.println(request);
-			
 			String[] params = request.split(";");
 			if(params.length>0){
 				switch(Integer.parseInt(params[0])){
@@ -64,16 +64,21 @@ public class Worker implements Runnable {
 				String resp = "fuck you\n";
 				out.writeBytes(resp);
 			}
-			in.close();
-			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				sock.close();
+			/*try {
+				/*
+				System.out.println("Fechando streams "+System.currentTimeMillis());
+				
+				if(!sock.isClosed()){
+					sock.shutdownOutput();
+					sock.close();
+				}/
 			} catch (IOException e) {
+				System.out.println(e.getMessage());
 				System.out.println("Não consegui fechar o socket!!!!! -------------------------------------");
-			}
+			}*/
 		}
 	}
 
@@ -83,19 +88,19 @@ public class Worker implements Runnable {
 		int value=0;
 		Game g = core.getGames().get(gId);
 		//"5;[blackId];[whiteId];[board];[possibleMoves];[blackCount];[whiteCount];[turn]" turn=0 black; turn=1 white; turn=-1 encerrado
-		if(player.equals(g.getBlack())){
+		if(player.equals(g.getBlack().getName())){
 			value=1;
 		} else
 			value=-1;
 		
 		
-		Set<int[]>moves=g.getPossibleMoves(value);
-		String possMoves="";
+		List<Integer[]>moves=g.getPossibleMoves(value);
+		String possMoves=" ";
 		if(moves.size()>0){
-			for(int[] a:moves){
+			for(Integer[] a:moves){
 				possMoves+=a[0]+","+a[1]+"|";
 			}
-			possMoves.subSequence(0, possMoves.length()-1);
+			possMoves = possMoves.substring(0, possMoves.length()-1);
 		}
 		
 		g.getBoard();
@@ -110,12 +115,21 @@ public class Worker implements Runnable {
 		Game g = core.getGames().get(id);
 		if(r==0){
 			//começa jogo
-			core.getPlayers().get(g.getBlack()).add("5,0");
-			core.getPlayers().get(g.getWhite()).add("5,0");
-			out.writeBytes("4;0\n");
+			Player a,b;
+			a = g.getBlack();
+			b = g.getWhite();
+			if(core.getLastConnection().contains(a) && core.getLastConnection().contains(b)){
+				core.getPlayers().get(g.getBlack()).add("5,0");
+				core.getPlayers().get(g.getWhite()).add("5,0");	
+				out.writeBytes("4;0\n");
+			} else {
+				endGame(a.getGameId(),"Outro jogador está offline.");
+				out.writeBytes("\n");
+			}
 		} else {
-			g.getBlack().setInGame(false);
-			g.getWhite().setInGame(false);
+			g.getBlack().setInGame(false,-1);
+			g.getWhite().setInGame(false,-1);
+			core.getLastConnection().remove(g.getId());
 			core.getPlayers().get(g.getBlack()).add("5,1");
 			core.getPlayers().get(g.getWhite()).add("5,1");
 			out.writeBytes("4;1\n");
@@ -123,13 +137,13 @@ public class Worker implements Runnable {
 	}
 
 	private void challenge(String request, String[] params, DataOutputStream out) throws IOException {
-		Player p1 = new Player(params[1],0);
-		Player p2 = new Player(params[2],0);
-		Game g = new Game(p1,p2,Core.DefaultBoardSize);
-		long id = core.getNewGameId();
-		core.getGames().put(id,g);
+		Player p1 = core.getLastConnection().get(params[1]);
+		Player p2 = core.getLastConnection().get(params[2]);
 		String response;
-		if(core.getLastConnection().contains(p2)) {
+		if(p1!=null && p2!=null) {
+			long id = core.getNewGameId();
+			Game g = new Game(p1,p2,Core.DefaultBoardSize,id);
+			core.getGames().put(id,g);
 			core.getPlayers().get(p2).add("3,"+p1.getName()+","+id); //parametros de mensagens devem ser inseridos na lista com o separador ','
 			response="3;0;"+id+";"+p2.getName(); //challenge enviado com sucesso
 		} else {
@@ -148,7 +162,9 @@ public class Worker implements Runnable {
 		}
 		if(response.length()>0)
 			response=response.substring(0,response.length()-1);
-		response+=";";
+		else
+			response+=" ";
+		response+="; ";
 		
 		boolean entrou=false;
 		for(Player player : core.getLastConnection().values()){
@@ -161,6 +177,7 @@ public class Worker implements Runnable {
 			response=response.substring(0,response.length()-1);
 		
 		core.getLastConnection().get(p.getName()).setLastCon(p.getLastCon()); //reescreve o timeout
+		System.out.println("2;"+response);
 		out.writeBytes("2;"+response+"\n"); //resposta do keepAlive (envia todas as mensagens enfileiradas pro jogador, e a lista de jogadores online)
 	}
 
@@ -174,5 +191,25 @@ public class Worker implements Runnable {
 			out.writeBytes("1;0\n"); //resposta que indica sucesso
 			core.getLastConnection().put(p.getName(), p);
 		}
+	}
+	
+	private void endGame(long gameId,String msg) {
+		Player a, b;
+		Game g = core.getGames().get(gameId);
+		if(g!=null){
+			a = g.getBlack();
+			b = g.getWhite();
+			if((a=core.getLastConnection().get(a.getName()))!=null){
+				core.getPlayers().get(a).add("7,"+msg);
+				a.setInGame(false, -1);
+			}
+			if((b=core.getLastConnection().get(b.getName()))!=null){
+				core.getPlayers().get(b).add("7,"+msg);
+				b.setInGame(false, -1);
+			}
+			
+			core.getGames().remove(g);
+		}
+		
 	}
 }
