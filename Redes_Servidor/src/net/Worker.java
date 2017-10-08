@@ -133,7 +133,7 @@ public class Worker implements Runnable {
 				other=g.getBlack();
 			}
 			if(core.getLastConnection().contains(other))
-				core.getPlayers().get(other).add("5,0"); //avisa o outro que tem update no tabuleiro (por meio do keepAlive)
+				core.getPlayers().get(other).add("5,0,"+gId); //avisa o outro que tem update no tabuleiro (por meio do keepAlive)
 			
 			resp="6;0";
 		} else {
@@ -214,8 +214,8 @@ public class Worker implements Runnable {
 			a = g.getBlack();
 			b = g.getWhite();
 			if(core.getLastConnection().contains(a) && core.getLastConnection().contains(b)){ //se os jogadores estão online ainda
-				core.getPlayers().get(g.getBlack()).add("5,0");
-				core.getPlayers().get(g.getWhite()).add("5,0");	
+				core.getPlayers().get(g.getBlack()).add("5,0,"+id);
+				core.getPlayers().get(g.getWhite()).add("5,0,"+id);	
 				out.writeBytes("4;0\n");
 			} else { //caso contrário encerra o jogo
 				endGame(a.getGameId(),"Outro jogador está offline.");
@@ -225,8 +225,8 @@ public class Worker implements Runnable {
 			g.getBlack().setInGame(false,-1);
 			g.getWhite().setInGame(false,-1);
 			core.getGames().remove(g.getId());
-			core.getPlayers().get(g.getBlack()).add("5,1");
-			core.getPlayers().get(g.getWhite()).add("5,1");
+			core.getPlayers().get(g.getBlack()).add("5,1,"+id);
+			core.getPlayers().get(g.getWhite()).add("5,1,"+id);
 			out.writeBytes("4;1\n");
 		}
 	}
