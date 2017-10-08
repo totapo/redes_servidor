@@ -1,6 +1,6 @@
 package game;
 
-public class Player {
+public class Player { //representa um jogador logado no servidor
 	private String name;
 	private long lastConnection,gameId;
 	private boolean inGame;

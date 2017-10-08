@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Random;
 
 public class Game {
+	//classe que contem as regras do jogo basicamente
+
 	private Player white, black;
 	private Board board;
 	private boolean turn; //true pretas; false brancas

@@ -13,6 +13,8 @@ import game.Player;
 import main.Core;
 
 public class Worker implements Runnable {
+	//implementa a tratativa de todas as requisições recebidas pelo welcomeSocket
+	
 	private Socket sock;
 	private Core core;
 	
@@ -71,6 +73,7 @@ public class Worker implements Runnable {
 	}
 
 	private void endMatch(String[] params, DataOutputStream out) throws IOException {
+		//endMatch-formato: "7;[playerId];[matchId]"
 		long id = Long.parseLong(params[2]);
 		String auxIdPlayer = params[1];
 		
@@ -80,6 +83,7 @@ public class Worker implements Runnable {
 	}
 
 	private void getWinner(String[] params, DataOutputStream out) throws IOException {
+		//getWinner-formato: "8;[playerId];[matchId]"
 		long id = Long.parseLong(params[2]);
 		String winner,auxIdPlayer = params[1];
 		Game g = core.getGames().get(id);
@@ -100,6 +104,7 @@ public class Worker implements Runnable {
 	}
 
 	private void makeMove(String[] params, DataOutputStream out) throws IOException {
+		//makeMove-formato: "6;[playerId];[matchId];[xCoordinate];[yCoordinate]"
 		String player = params[1];
 		Player other;
 		long gId = Long.parseLong(params[2]);
@@ -157,6 +162,7 @@ public class Worker implements Runnable {
 	}
 
 	private void getGameInfo(String[] params, DataOutputStream out) throws IOException {
+		//getBoard-formato: "5;[playerId];[matchId]"
 		String player = params[1];
 		long gId = Long.parseLong(params[2]);
 		int value=0;
@@ -198,23 +204,24 @@ public class Worker implements Runnable {
 	}
 
 	private void challResp(String[] params, DataOutputStream out) throws IOException {
-		int r = Integer.parseInt(params[2]);
+		//challResponse-formato: "4;[matchId];[boolAccept]" bool=0 ok; bool=1 false
+		int r = Integer.parseInt(params[2]); //resposta do usuario
 		long id = Long.parseLong(params[1]);
 		Game g = core.getGames().get(id);
-		if(r==0){
+		if(r==0){//se ele deu OK
 			//começa jogo
 			Player a,b;
 			a = g.getBlack();
 			b = g.getWhite();
-			if(core.getLastConnection().contains(a) && core.getLastConnection().contains(b)){
+			if(core.getLastConnection().contains(a) && core.getLastConnection().contains(b)){ //se os jogadores estão online ainda
 				core.getPlayers().get(g.getBlack()).add("5,0");
 				core.getPlayers().get(g.getWhite()).add("5,0");	
 				out.writeBytes("4;0\n");
-			} else {
+			} else { //caso contrário encerra o jogo
 				endGame(a.getGameId(),"Outro jogador está offline.");
 				out.writeBytes("\n");
 			}
-		} else {
+		} else { //caso contrário limpa o jogo que ja havia criado previamente e libera os jogadores
 			g.getBlack().setInGame(false,-1);
 			g.getWhite().setInGame(false,-1);
 			core.getGames().remove(g.getId());
@@ -225,6 +232,7 @@ public class Worker implements Runnable {
 	}
 
 	private void challenge(String request, String[] params, DataOutputStream out) throws IOException {
+		//challenge-formato: "3;[playerId];[targetPlayerId]"
 		Player p1 = core.getLastConnection().get(params[1]);
 		Player p2 = core.getLastConnection().get(params[2]);
 		String response;
@@ -241,6 +249,7 @@ public class Worker implements Runnable {
 	}
 
 	private void keepAlive(String[] params, DataOutputStream out) throws IOException {
+		//keepAlive-formato: "2;[playerId]"
 		Player p = new Player(params[1],System.currentTimeMillis());
 		String response="";
 		String a;
@@ -270,6 +279,7 @@ public class Worker implements Runnable {
 	}
 
 	private void login(String[] params, DataOutputStream out) throws IOException {
+		//login-formato "1;[playerid]"
 		Player p = new Player(params[1],System.currentTimeMillis());
 		ConcurrentLinkedQueue<String> test = core.getPlayers().put(p, new ConcurrentLinkedQueue<String>()); 
 		if(test!=null){ //ja tinha gente cadastrada com esse nick
@@ -282,6 +292,9 @@ public class Worker implements Runnable {
 	}
 	
 	private void endGame(long gameId,String msg) {
+		//encerra um jogo em andamento, liberando os jogadores para participarem dos próximos se desejarem
+		//caso o encerramento não seja normal (pelo fim de uma partida) os jogadores ficam sabendo do término por meio de mensagem
+		//no keepAlive
 		Player a, b;
 		Game g = core.getGames().get(gameId);
 		if(g!=null){

@@ -33,7 +33,7 @@ public class TCPServer implements Runnable {
 	                break;
 	            }
 				Socket s = welcome.accept(); //bloqueante...
-				Core.pool.execute(new Worker(s,core));
+				Core.pool.execute(new Worker(s,core)); //cria uma nova thread para tratar a requisição que chegou
 			}
         } catch (Exception e) { 
         	

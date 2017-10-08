@@ -14,7 +14,8 @@ import net.TCPServer;
 import net.TimeoutThread;
 import net.Worker;
 
-public class Core {
+public class Core {//contém o método main e as principais estruturas de dados utilizadas no servidor
+	//inicia o welcomeSocket e a classe responsável por atender aos pedidos
 	public static ExecutorService pool;
 	private static final int PORTA=12345;
 	public static final long TimeoutWindow=60000; //1 min

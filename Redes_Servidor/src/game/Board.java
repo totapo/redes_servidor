@@ -1,7 +1,7 @@
 package game;
 
 public class Board {
-	
+	//representa um tabuleiro de um jogo em andamento
 	private int size;
 	private int[][] board; //-1 = brancas; 0 = vazio; 1=pretas
 	private int bCount,wCount;
